@@ -1,0 +1,6 @@
+flask
+requests
+fuzzywuzzy
+pandas
+matplotlib
+discord.py
