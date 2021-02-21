@@ -5,6 +5,7 @@ import sqlite3
 import json
 import os
 import datetime
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -96,14 +97,24 @@ def how_many_monke_graph():
     query = f"""
     SELECT *
     FROM Monke
-    WHERE timestamp > DATE('now','{-hours} hours')
+    WHERE timestamp > datetime('now','{-hours} hours')
     ORDER BY timestamp DESC;
     """
     curr.execute(query)
-    most_recent_update = [dict(row) for row in curr.fetchall()]
+    recent_updates = [dict(row) for row in curr.fetchall()]
     c.close()
 
-    return jsonify(most_recent_update)
+    df = pd.DataFrame(recent_updates)
+    df.columns = ['timestamp', 'player_count', 'room_name', 'game_version', 'game_name']
+    df = df.astype({'player_count': 'int32'})
+    df = df[df['player_count'] > df['player_count'].shift(-1) - 10]
+    df = df[df['player_count'] < df['player_count'].shift(-1) + 10]
+    recent_updates = df.to_dict('records')
+
+    # limit to 256 samples. Subsample to reduce resolution
+    recent_updates = recent_updates[::int(len(recent_updates)/256)]
+
+    return jsonify(recent_updates)
 
 @app.route('/how_many_monke', methods=["GET"])
 def how_many_monke():

@@ -86,7 +86,43 @@ async def on_message(message):
         await message.channel.trigger_typing()
         data = get_user_count(graph=True)
 
-        await post_graph(pd.DataFrame(data), message)
+        await post_graph(pd.DataFrame(data), message, "Last 24 hours:")
+
+    # show cool graph for longer history
+    elif fuzz.ratio(message.content.lower(), 'shortmonke') > 90:
+        store_in_db(message)
+
+        await message.channel.trigger_typing()
+        data = get_user_count(graph=True, graph_hours=6)
+
+        await post_graph(pd.DataFrame(data), message, "Last 6 hours:")
+
+    # show cool graph for longer history
+    elif fuzz.ratio(message.content.lower(), 'longmonke') > 90:
+        store_in_db(message)
+
+        await message.channel.trigger_typing()
+        data = get_user_count(graph=True, graph_hours=96)
+
+        await post_graph(pd.DataFrame(data), message, "Last 4 days:")
+
+    # show cool graph for longer history
+    elif fuzz.ratio(message.content.lower(), 'longlongmonke') > 90:
+        store_in_db(message)
+
+        await message.channel.trigger_typing()
+        data = get_user_count(graph=True, graph_hours=168)
+
+        await post_graph(pd.DataFrame(data), message, "Last 7 days:")
+    
+    # show cool graph for longer history
+    elif fuzz.ratio(message.content.lower(), 'longlonglongmonke') > 90:
+        store_in_db(message)
+
+        await message.channel.trigger_typing()
+        data = get_user_count(graph=True, graph_hours=336)
+
+        await post_graph(pd.DataFrame(data), message, "Last 14 days:")
 
 
 async def post_message(count, channel, version=None, room=None):
@@ -98,7 +134,7 @@ async def post_message(count, channel, version=None, room=None):
     await channel.send(embed=e)
 
 
-async def post_graph(df, message):
+async def post_graph(df, message, length_message):
     if len(df) > 0:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df.columns = ['game_name', 'game_version',
@@ -111,6 +147,7 @@ async def post_graph(df, message):
         plt.rcParams.update(params)
         fig = plt.figure(figsize=(7, 3), dpi=200)
         ax = plt.axes()
+        plt.margins(x=0)
         df.plot(ax=ax, x='Time', y='Player Count', linewidth=3.0, c='w')
 
         ax.get_xaxis().set_visible(False)
@@ -121,7 +158,7 @@ async def post_graph(df, message):
         plt.clf()
         plt.close("all")
 
-        await message.channel.send(content="Player Count: **"+str(df.iloc[0]['Player Count'])+"**\nLast 24 hrs:", file=discord.File('graph.png'))
+        await message.channel.send(content=f"Player Count: **{str(df.iloc[0]['Player Count'])}**\n{length_message}", file=discord.File('graph.png'))
     else:
         await message.channel.send('No monke :(')
 
@@ -135,9 +172,9 @@ async def change_channel_names():
         print("success")
 
 
-def get_user_count(graph=False):
+def get_user_count(graph=False, graph_hours=24):
     if graph:
-        r = requests.get(monke_graph_url)
+        r = requests.get(monke_graph_url, params={'hours': graph_hours})
     else:
         r = requests.get(monke_count_url)
 

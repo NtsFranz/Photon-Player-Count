@@ -15,7 +15,7 @@ The server is where the databse of player counts is stored. Player counts are up
 
 The flask server has 3 routes:
 #### `/update_monke_count` [POST]
-	Use this to upload the current number of players from Unity using a POST request
+ - Use this to upload the current number of players from Unity using a POST request
 	
 #### `/how_many_monke` [GET]
  This is used in the discord bot to get the last count of players
