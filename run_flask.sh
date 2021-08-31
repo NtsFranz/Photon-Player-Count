@@ -1,1 +1,1 @@
-export FLASK_APP="flask_db.py" && flask run
+export FLASK_APP="flask_mysql.py" && flask run

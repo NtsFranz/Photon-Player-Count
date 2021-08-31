@@ -4,3 +4,6 @@ bot_log.db
 monke.db
 __pycache__/
 env_monke2/
+env/
+.vscode/
+mysql_config.py
