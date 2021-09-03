@@ -137,7 +137,7 @@ async def post_message(count, channel, version=None, room=None):
 async def post_graph(df, message, length_message, scatter=False):
     if len(df) > 0:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
-        df.columns = ['Time', 'Player Count']
+        df.columns = ['Player Count', 'Time']
 
         params = {"ytick.color": "w",
                   "xtick.color": "w",
@@ -155,7 +155,7 @@ async def post_graph(df, message, length_message, scatter=False):
             ax.get_legend().remove()
 
         ax.get_xaxis().set_visible(False)
-        ax.get_legend().remove()
+        #ax.get_legend().remove()
 
         plt.savefig('graph.png', transparent=True, bbox_inches='tight')
         plt.draw()

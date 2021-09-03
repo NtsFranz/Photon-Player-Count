@@ -1,0 +1,6 @@
+discord
+requests
+fuzzywuzzy
+pandas
+matplotlib
+python-Levenshtein
