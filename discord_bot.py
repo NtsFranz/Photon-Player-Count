@@ -18,16 +18,8 @@ import matplotlib.pyplot as plt
 
 from datetime import datetime
 
-# FILL THESE IN WITH YOUR APPROPRIATE URLS AND IDS
-monke_graph_url = "http://localhost:5000/how_many_monke_graph"
-monke_count_url = "http://localhost:5000/how_many_monke"
-discord_client_id = "[REDACTED]"
+from discord_bot_config import *
 
-
-# This restricts all responses to a single channel, specified by the channel id in debugChannel
-# This is good for running the real bot and a testing bot on a local machine
-debug = True
-debugChannel = 706393776918364211
 
 
 client = discord.Client()
@@ -97,6 +89,14 @@ async def on_message(message):
 
         await post_graph(pd.DataFrame(data), message, "Last 6 hours:")
 
+    elif fuzz.ratio(message.content.lower(), 'shortshortmonke') > 90:
+        store_in_db(message)
+
+        await message.channel.trigger_typing()
+        data = get_user_count(graph=True, graph_hours=0.5)
+
+        await post_graph(pd.DataFrame(data), message, "Last 30 minutes:")
+
     # show cool graph for longer history
     elif fuzz.ratio(message.content.lower(), 'longmonke') > 90:
         store_in_db(message)
@@ -155,6 +155,7 @@ async def post_graph(df, message, length_message, scatter=False):
             ax.get_legend().remove()
 
         ax.get_xaxis().set_visible(False)
+        ax.get_legend().remove()
 
         plt.savefig('graph.png', transparent=True, bbox_inches='tight')
         plt.draw()
