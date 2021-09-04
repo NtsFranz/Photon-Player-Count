@@ -7,3 +7,5 @@ env_monke2/
 env/
 .vscode/
 mysql_config.py
+gunicorn.log
+gunicorn.err.log
