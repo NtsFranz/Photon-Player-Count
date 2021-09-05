@@ -9,3 +9,4 @@ env/
 mysql_config.py
 gunicorn.log
 gunicorn.err.log
+app.log*
