@@ -5,6 +5,12 @@ import pymysql
 from mysql_config import *
 from datetime import datetime, timedelta
 import statistics
+import logging
+from logging.handlers import RotatingFileHandler
+
+import traceback
+from time import strftime
+
 
 app = Flask(__name__)
 
@@ -27,7 +33,11 @@ def connectToDB():
 @app.route('/update_monke_count', methods=["POST"])
 def update_monke_count():
     conn, curr = connectToDB()
-    
+   
+    player_count = request.values.get('player_count')
+    if player_count is None:
+        return 'No player count', 400
+
     try:
         data = {
             "player_count": int(request.values.get("player_count", 0)),
@@ -92,6 +102,8 @@ def how_many_monke_graph():
         
     # get the rest of the recent data without cache
     all_data.extend(get_data_from_hour(last_hour, conn, curr, False))
+
+    all_data = sorted(all_data, key=lambda t: t['timestamp'])
 
     conn.commit()
     curr.close()
@@ -190,3 +202,42 @@ def add_to_cache(data, conn, curr):
     for row in data:
         curr.execute(query, row)
     return "Success"
+
+
+
+handler = RotatingFileHandler('app.log', maxBytes=100000000, backupCount=1500)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.ERROR)
+logger.addHandler(handler)
+
+@app.after_request
+def after_request(response):
+    """ Logging after every request. """
+    # This avoids the duplication of registry in the log,
+    # since that 500 is already logged via @app.errorhandler.
+    if response.status_code != 500:
+        ts = strftime('[%Y-%b-%d %H:%M]')
+        logger.error('%s %s %s %s %s %s',
+                     ts,
+                     request.remote_addr,
+                     request.method,
+                     request.scheme,
+                     request.full_path,
+                     response.status)
+    return response
+
+
+@app.errorhandler(Exception)
+def exceptions(e):
+    """ Logging after every Exception. """
+    ts = strftime('[%Y-%b-%d %H:%M]')
+    tb = traceback.format_exc()
+    logger.error('%s %s %s %s %s 5xx INTERNAL SERVER ERROR\n%s',
+                 ts,
+                 request.remote_addr,
+                 request.method,
+                 request.scheme,
+                 request.full_path,
+                 tb)
+
+    return "SERVER ERROR", 500
