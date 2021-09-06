@@ -103,6 +103,8 @@ def how_many_monke_graph():
     # get the rest of the recent data without cache
     all_data.extend(get_data_from_hour(last_hour, conn, curr, False))
 
+    all_data = sorted(all_data, key=lambda t: t['timestamp'])
+
     conn.commit()
     curr.close()
 
