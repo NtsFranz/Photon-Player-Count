@@ -162,7 +162,7 @@ async def post_graph(df, message, length_message, scatter=False):
         plt.clf()
         plt.close("all")
 
-        await message.channel.send(content=f"Player Count: **{str(df.iloc[0]['Player Count'])}**\n{length_message}", file=discord.File('graph.png'))
+        await message.channel.send(content=f"Player Count: **{df.iloc[-1]['Player Count']:,.0f}**\n{length_message}", file=discord.File('graph.png'))
     else:
         await message.channel.send('No monke :(')
 
