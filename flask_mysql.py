@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import statistics
 import logging
 from logging.handlers import RotatingFileHandler
+import random
 
 import traceback
 from time import strftime
@@ -32,6 +33,10 @@ def connectToDB():
 
 @app.route('/update_monke_count', methods=["POST"])
 def update_monke_count():
+
+    if random.random() < .95:
+        return ""
+
     conn, curr = connectToDB()
    
     player_count = request.values.get('player_count')
@@ -47,6 +52,7 @@ def update_monke_count():
         }
     except:
         return "ur a failure"
+
 
     query = """
     INSERT INTO Monke
@@ -105,6 +111,10 @@ def how_many_monke_graph():
 
     all_data = sorted(all_data, key=lambda t: t['timestamp'])
 
+    num_values = 1024
+    if len(all_data) > num_values:
+        all_data = all_data[::int(len(all_data)/num_values)]
+
     conn.commit()
     curr.close()
 
@@ -122,6 +132,7 @@ def get_data_from_hour(hour_timestamp, conn, curr, should_add_to_cache: bool) ->
     FROM `Cache`
     WHERE `timestamp` > "{start}"
     AND `timestamp` < "{end}"
+    AND `player_count` < 5000000
     ORDER BY `timestamp` DESC;
     """
     curr.execute(query)
@@ -138,6 +149,7 @@ def get_data_from_hour(hour_timestamp, conn, curr, should_add_to_cache: bool) ->
     SELECT `timestamp`, `player_count`
     FROM `Monke`
     WHERE `timestamp` > '{start}'
+    AND `player_count` < 5000000
     AND `timestamp` < '{end}'
     ORDER BY `timestamp` DESC;
     """
@@ -174,14 +186,13 @@ def how_many_monke():
     query = """
     SELECT `player_count`
     FROM `Monke`
-    WHERE `player_count` > 0 AND `player_count` < 10000
     ORDER BY `timestamp` DESC
-    LIMIT 100;
+    LIMIT 200;
     """
     curr.execute(query)
     most_recent_update = [dict(row)['player_count'] for row in curr.fetchall()]
     conn.close()
-    median = statistics.median(most_recent_update)
+    median = round(statistics.median(most_recent_update))
 
     return jsonify(median)
     
@@ -210,21 +221,21 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)
 logger.addHandler(handler)
 
-@app.after_request
-def after_request(response):
-    """ Logging after every request. """
+#@app.after_request
+#def after_request(response):
+#    """ Logging after every request. """
     # This avoids the duplication of registry in the log,
     # since that 500 is already logged via @app.errorhandler.
-    if response.status_code != 500:
-        ts = strftime('[%Y-%b-%d %H:%M]')
-        logger.error('%s %s %s %s %s %s',
-                     ts,
-                     request.remote_addr,
-                     request.method,
-                     request.scheme,
-                     request.full_path,
-                     response.status)
-    return response
+#    if response.status_code != 500:
+#        ts = strftime('[%Y-%b-%d %H:%M]')
+#        logger.error('%s %s %s %s %s %s',
+#                     ts,
+#                     request.remote_addr,
+#                     request.method,
+#                     request.scheme,
+#                     request.full_path,
+#                     response.status)
+#    return response
 
 
 @app.errorhandler(Exception)
