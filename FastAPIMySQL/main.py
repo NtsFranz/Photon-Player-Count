@@ -11,6 +11,9 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 import time
 from datetime import datetime, timedelta
+import random
+from pydantic import BaseModel
+from fastapi import FastAPI, Form
 
 description = """
 
@@ -42,7 +45,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 last_insert = time.time()
-insert_interval = .01
+insert_interval = .1
+
+
+class PostData(BaseModel):
+    player_count: int
+    room_name: str
+    game_version: str
+    game_name: str
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -71,45 +81,6 @@ def read_root(request: Request):
 </body>
 </html>"""
 
-
-@app.post("/update_monke_count")
-async def update_monke_count(player_count: int = None, room_name: Optional[str] = "none", game_version: Optional[str] = "none", game_name: Optional[str] = "none"):
-    """
-    Adds a sample of the current player count to the database.
-    """
-
-    if time.time() - last_insert < insert_interval:
-        return ""
-
-    conn, curr = connectToDB()
-
-    if player_count is None:
-        return 'No player count', 400
-
-    try:
-        data = {
-            "player_count": player_count,
-            "room_name": room_name,
-            "game_version": game_version,
-            "game_name": game_name,
-        }
-    except:
-        return "ur a failure"
-
-    query = """
-    INSERT INTO Monke
-    (
-        player_count
-    )
-    VALUES
-    (
-        %(player_count)s
-    );
-    """
-    curr.execute(query, data)
-    conn.commit()
-    curr.close()
-    return "Success"
 
 
 @app.get("/how_many_monke_graph")
@@ -174,3 +145,50 @@ async def how_many_monke():
     median = round(statistics.median(most_recent_update))
 
     return median
+
+
+@app.post("/update_monke_count")
+@limiter.exempt
+def update_monke_count(request: Request, player_count: int = Form(...), room_name: str = Form(...), game_version: str = Form(...), game_name: str = Form(...)):
+    """
+    Adds a sample of the current player count to the database.
+    """
+    
+    global last_insert
+
+    if time.time() - last_insert < insert_interval:
+        return ""
+
+    last_insert = time.time()
+
+    conn, curr = connectToDB()
+
+
+    if player_count is None:
+        return 'No player count', 400
+
+    try:
+        data = {
+            "player_count": player_count,
+            "room_name": room_name,
+            "game_version": game_version,
+            "game_name": game_name,
+        }
+    except:
+        return "ur a failure"
+
+    query = """
+    INSERT INTO Monke
+    (
+        player_count
+    )
+    VALUES
+    (
+        %(player_count)s
+    );
+    """
+    curr.execute(query, data)
+    conn.commit()
+    curr.close()
+    return "Success"
+
