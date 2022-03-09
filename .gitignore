@@ -5,8 +5,12 @@ monke.db
 __pycache__/
 env_monke2/
 env/
+env_*/
 .vscode/
 mysql_config.py
 gunicorn.log
 gunicorn.err.log
 app.log*
+.idea/
+databases/
+discord_bot_config.py

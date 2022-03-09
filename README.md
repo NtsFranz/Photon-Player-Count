@@ -60,7 +60,7 @@ Example return data:
 ```
 
 ### Discord bot (`discord_bot.py`)
-![Example bot response](example_graph_response.png)
+![Example bot response](DiscordBot/example_graph_response.png)
 
 In the provided script, variations of `howmanymonke` respond with a graph of the last 24 hours of player counts, and `!usercount` responds with a simpler instantaneous count.
 
