@@ -11,8 +11,6 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 import time
 from datetime import datetime, timedelta
-import random
-from pydantic import BaseModel
 from fastapi import FastAPI, Form
 
 description = """
@@ -48,13 +46,6 @@ last_insert = time.time()
 insert_interval = .1
 
 
-class PostData(BaseModel):
-    player_count: int
-    room_name: str
-    game_version: str
-    game_name: str
-
-
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 @limiter.exempt
 def read_root(request: Request):
@@ -80,7 +71,6 @@ def read_root(request: Request):
   </rapi-doc>
 </body>
 </html>"""
-
 
 
 @app.get("/how_many_monke_graph")
@@ -153,7 +143,7 @@ def update_monke_count(request: Request, player_count: int = Form(...), room_nam
     """
     Adds a sample of the current player count to the database.
     """
-    
+
     global last_insert
 
     if time.time() - last_insert < insert_interval:
@@ -162,7 +152,6 @@ def update_monke_count(request: Request, player_count: int = Form(...), room_nam
     last_insert = time.time()
 
     conn, curr = connectToDB()
-
 
     if player_count is None:
         return 'No player count', 400
@@ -191,4 +180,3 @@ def update_monke_count(request: Request, player_count: int = Form(...), room_nam
     conn.commit()
     curr.close()
     return "Success"
-

@@ -3,3 +3,4 @@ uvicorn
 slowapi
 pandas
 pymysql
+python-multipart
