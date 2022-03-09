@@ -2,9 +2,9 @@ DROP TABLE IF EXISTS `Monke`;
 CREATE TABLE `Monke` (
     `timestamp` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `player_count` INTEGER NOT NULL,
-    `room_name` TEXT NOT NULL,
-    `game_version` TEXT NOT NULL,
-    `game_name` TEXT NOT NULL,
+    `room_name` TEXT,
+    `game_version` TEXT,
+    `game_name` TEXT,
 
     INDEX(`timestamp`),
     INDEX(`player_count`)
